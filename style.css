@@ -242,3 +242,8 @@ dialog{padding:0;width:min(1200px,calc(100% - 36px));max-height:90svh;border:1px
 .brief-compose summary:focus-visible,.brief-copy:focus-visible,.brief-editor textarea:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 @media(hover:hover) and (pointer:fine){.brief-compose summary:hover{color:var(--accent)}.brief-copy:hover{background:#171b15;color:var(--accent)}.brief-instagram:hover{color:var(--accent)}}
 @media(max-width:480px){.project-brief{padding:22px 18px}.project-brief h3{font-size:38px}}
+
+/* Une seule surface de défilement : pas de rebond au-delà du footer. */
+html,body{overscroll-behavior-y:none}
+@supports(overflow:clip){html,body{overflow-x:clip}}
+footer{margin-bottom:0}
