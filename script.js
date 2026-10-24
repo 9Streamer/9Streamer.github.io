@@ -282,13 +282,6 @@ if(window.CMS.settings?.opening!==false){openMenu();updateScene(0);chapterMenu.q
 // Cliquer le plan utilise la même transition que son lien ; un balayage ne l’ouvre pas.
 sceneWindow.addEventListener('click',e=>{if(e.target.closest('a,button'))return;if(suppressSceneClick){suppressSceneClick=false;return;}$('.scene-enter').click();});
 sceneWindow.addEventListener('keydown',e=>{if(e.target===sceneWindow&&(e.key==='Enter'||e.key===' ')){e.preventDefault();$('.scene-enter').click();}});
-// Le modèle de contact est facultatif, éditable et jamais envoyé automatiquement.
-$('.copy-starter').addEventListener('click',async()=>{
- const message=$('#starter-text'),status=$('#copy-status');
- try{await navigator.clipboard.writeText(message.value);status.textContent='Message copié. Étape 2 : ouvrez Instagram, collez-le dans la conversation, puis envoyez-le quand vous êtes prêt.';}
- catch{message.focus();message.select();status.textContent='La copie automatique est bloquée ici. Votre message est sélectionné : copiez-le avec le menu de votre téléphone ou Ctrl/Cmd + C, puis ouvrez Instagram.';}
-});
-
 // Projection automatique du menu : un plan toutes les quatre secondes.
 // Son et défilement indépendants : seuls leurs boutons changent leur état.
 const autoButton=document.createElement('button');autoButton.type='button';autoButton.className='auto-scenes mono';

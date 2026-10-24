@@ -215,3 +215,10 @@ dialog{padding:0;width:min(1200px,calc(100% - 36px));max-height:90svh;border:1px
  .contact-head{gap:12px}.contact-arrow{font-size:36px;flex-shrink:0}
 }
 @media(hover:none) and (pointer:coarse){.scene-window{touch-action:pan-y pinch-zoom;transform:translateX(var(--drag-x,0px)) rotate(var(--drag-tilt,0deg))}}
+
+/* Contact : repères simples, sans accordéon ni copie de message. */
+.project-brief{margin-top:32px;padding:26px 0;border-top:1px solid #22291f55;min-width:0}
+.project-brief h3{font-size:clamp(28px,3vw,42px);line-height:1.1;margin:0 0 18px}
+.project-brief p,.project-brief li{font-size:13px;line-height:1.8}
+.project-brief ul{margin:18px 0;padding-left:20px}.project-brief li+li{margin-top:6px}
+.project-brief .brief-note{margin-top:18px;color:#555b50}
