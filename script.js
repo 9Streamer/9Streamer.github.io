@@ -32,41 +32,41 @@ menu.addEventListener('click',openMenu);$('.chapter-close').addEventListener('cl
 chapterMenu.addEventListener('close',()=>{document.body.classList.remove('modal-open');menu.setAttribute('aria-expanded','false');menu.focus({preventScroll:true});});
 $('.previous-scene').addEventListener('click',()=>updateScene(sceneIndex-1));$('.following-scene').addEventListener('click',()=>updateScene(sceneIndex+1));$$('[data-scene]').forEach(b=>b.addEventListener('click',()=>updateScene(Number(b.dataset.scene))));
 chapterMenu.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();updateScene(sceneIndex+(e.key==='ArrowRight'?1:-1));}});
-// Glissement tactile : suivi du doigt, verrouillage horizontal et annulation propre.
+// Touch Events : compatible avec les navigateurs intégrés Android / Instagram.
+// Le scroll vertical et le pincement restent natifs ; seul le balayage horizontal est capturé.
 let swipeStart=null,suppressSceneClick=false,dragFrame=0;
 const sceneWindow=$('.scene-window');
 function resetSceneDrag(){cancelAnimationFrame(dragFrame);sceneWindow.classList.remove('is-dragging');sceneWindow.style.removeProperty('--drag-x');sceneWindow.style.removeProperty('--drag-tilt');}
-sceneWindow.addEventListener('pointerdown',e=>{
- if(e.pointerType!=='touch'||!mobile.matches||!e.isPrimary||e.button!==0||sceneAnimating)return;
- suppressSceneClick=false;swipeStart={id:e.pointerId,x:e.clientX,y:e.clientY,start:performance.now(),axis:null};
-});
-sceneWindow.addEventListener('pointermove',e=>{
- const g=swipeStart;if(!g||g.id!==e.pointerId)return;
- const dx=e.clientX-g.x,dy=e.clientY-g.y;
- if(!g.axis&&Math.max(Math.abs(dx),Math.abs(dy))>10)g.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
- if(g.axis!=='x')return;
- suppressSceneClick=true;
- if(!sceneWindow.hasPointerCapture(e.pointerId))sceneWindow.setPointerCapture(e.pointerId);
- sceneWindow.classList.add('is-dragging');
- cancelAnimationFrame(dragFrame);dragFrame=requestAnimationFrame(()=>{if(!motion)return;const shift=Math.max(-110,Math.min(110,dx*.48));sceneWindow.style.setProperty('--drag-x',shift+'px');sceneWindow.style.setProperty('--drag-tilt',(shift/45)+'deg');});
-});
-sceneWindow.addEventListener('pointerup',e=>{
- const g=swipeStart;if(!g||g.id!==e.pointerId)return;
- const dx=e.clientX-g.x,dy=e.clientY-g.y,elapsed=performance.now()-g.start;
- suppressSceneClick=Math.abs(dx)>10||Math.abs(dy)>10||elapsed>600;
- const threshold=Math.min(70,sceneWindow.clientWidth*.17);
- const commit=g.axis==='x'&&(Math.abs(dx)>threshold||(Math.abs(dx)>25&&Math.abs(dx)/Math.max(elapsed,1)>.45));
- swipeStart=null;resetSceneDrag();if(sceneWindow.hasPointerCapture(e.pointerId))sceneWindow.releasePointerCapture(e.pointerId);
- if(commit)updateScene(sceneIndex+(dx<0?1:-1));
-});
 function cancelSceneDrag(){if(swipeStart)suppressSceneClick=true;swipeStart=null;resetSceneDrag();}
-sceneWindow.addEventListener('pointercancel',cancelSceneDrag);
-sceneWindow.addEventListener('lostpointercapture',cancelSceneDrag);
+sceneWindow.addEventListener('touchstart',e=>{
+ if(e.touches.length!==1||sceneAnimating){cancelSceneDrag();return;}
+ const t=e.touches[0];suppressSceneClick=false;swipeStart={id:t.identifier,x:t.clientX,y:t.clientY,start:performance.now(),axis:null};
+},{passive:true});
+sceneWindow.addEventListener('touchmove',e=>{
+ const g=swipeStart;if(!g)return;
+ if(e.touches.length!==1){cancelSceneDrag();return;}
+ const t=e.touches[0];if(t.identifier!==g.id)return;
+ const dx=t.clientX-g.x,dy=t.clientY-g.y;
+ if(!g.axis&&Math.max(Math.abs(dx),Math.abs(dy))>8)g.axis=Math.abs(dx)>Math.abs(dy)*1.1?'x':'y';
+ if(g.axis!=='x')return;
+ if(e.cancelable)e.preventDefault();
+ suppressSceneClick=true;sceneWindow.classList.add('is-dragging');
+ cancelAnimationFrame(dragFrame);dragFrame=requestAnimationFrame(()=>{if(!motion)return;const shift=Math.max(-90,Math.min(90,dx*.35));sceneWindow.style.setProperty('--drag-x',shift+'px');sceneWindow.style.setProperty('--drag-tilt',(shift/60)+'deg');});
+},{passive:false});
+sceneWindow.addEventListener('touchend',e=>{
+ const g=swipeStart;if(!g)return;
+ const t=Array.from(e.changedTouches).find(t=>t.identifier===g.id);if(!t)return;
+ const dx=t.clientX-g.x,dy=t.clientY-g.y,elapsed=performance.now()-g.start;
+ suppressSceneClick=Math.abs(dx)>8||Math.abs(dy)>8||elapsed>600;
+ const horizontal=g.axis==='x'||(!g.axis&&Math.abs(dx)>Math.abs(dy)*1.1);
+ const commit=horizontal&&(Math.abs(dx)>Math.min(45,sceneWindow.clientWidth*.12)||(Math.abs(dx)>24&&Math.abs(dx)/Math.max(elapsed,1)>.4));
+ swipeStart=null;resetSceneDrag();if(commit){if(e.cancelable)e.preventDefault();updateScene(sceneIndex+(dx<0?1:-1));}
+},{passive:false});
+sceneWindow.addEventListener('touchcancel',cancelSceneDrag,{passive:true});
 chapterMenu.addEventListener('close',cancelSceneDrag);
-mobile.addEventListener('change',cancelSceneDrag);
 sceneWindow.addEventListener('dragstart',e=>e.preventDefault());
-// Empêche un relâchement après glissement d’activer accidentellement le lien.
 sceneWindow.addEventListener('click',e=>{if(suppressSceneClick){e.preventDefault();e.stopImmediatePropagation();suppressSceneClick=false;}},true);
+$$('[data-scene-step]').forEach(b=>b.addEventListener('click',()=>updateScene(sceneIndex+Number(b.dataset.sceneStep))));
 $('.scene-enter').addEventListener('click',async e=>{e.preventDefault();if(sceneAnimating)return;sceneAnimating=true;const scene=NAV_SCENES[sceneIndex],wipe=$('.scene-transition');try{if(motion)await wipe.animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:230,easing:'ease-in',fill:'forwards'}).finished;closeMenu();const target=$('#'+scene.id);target.scrollIntoView({behavior:'instant',block:'start'});history.replaceState(null,'','#'+scene.id);const heading=target.querySelector('h2')||target;heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});if(motion)await wipe.animate([{transform:'scaleY(1)'},{transform:'scaleY(0)'}],{duration:400,easing:'cubic-bezier(.22,1,.36,1)',fill:'forwards'}).finished;}finally{wipe.getAnimations().forEach(a=>a.cancel());sceneAnimating=false;}});
 // Révélations progressives. Le site reste entièrement visible sans JavaScript.
 if ('IntersectionObserver' in window && motion) {
@@ -282,12 +282,12 @@ if(window.CMS.settings?.opening!==false){openMenu();updateScene(0);chapterMenu.q
 // Cliquer le plan utilise la même transition que son lien ; un balayage ne l’ouvre pas.
 sceneWindow.addEventListener('click',e=>{if(e.target.closest('a,button'))return;if(suppressSceneClick){suppressSceneClick=false;return;}$('.scene-enter').click();});
 sceneWindow.addEventListener('keydown',e=>{if(e.target===sceneWindow&&(e.key==='Enter'||e.key===' ')){e.preventDefault();$('.scene-enter').click();}});
-$('.copy-starter').addEventListener('click',async()=>{const message=$('#starter-text');try{await navigator.clipboard.writeText(message.textContent);$('#copy-status').textContent='Message copié. Ouvrez le réseau de votre choix puis collez-le.';}catch{const range=document.createRange();range.selectNodeContents(message);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);$('#copy-status').textContent='Sélectionnez et copiez ce texte, puis collez-le dans Instagram.';}});
-
-// Même amorce pour les trois réseaux de contact ; aucun envoi automatique.
-$$('.copy-network').forEach(button=>button.addEventListener('click',async()=>{
- const message=$('#starter-text');if(button.dataset.network==='TIKTOK'){window.open('https://www.tiktok.com/@tdk.dk1','_blank','noopener,noreferrer');}try{await navigator.clipboard.writeText(message.textContent);button.textContent='MESSAGE COPIÉ — OUVRIR '+button.dataset.network+' ↑';if(button.dataset.network==='TIKTOK'){$('.tiktok-help').textContent='Message copié. Sur TikTok, touchez « Message » puis collez-le.';}}catch{message.scrollIntoView({behavior:motion?'smooth':'auto',block:'center'});$('#copy-status').textContent='Copiez le message ci-dessus, puis ouvrez '+button.dataset.network+'.';}
-}));
+// Le modèle de contact est facultatif, éditable et jamais envoyé automatiquement.
+$('.copy-starter').addEventListener('click',async()=>{
+ const message=$('#starter-text'),status=$('#copy-status');
+ try{await navigator.clipboard.writeText(message.value);status.textContent='Message copié. Étape 2 : ouvrez Instagram, collez-le dans la conversation, puis envoyez-le quand vous êtes prêt.';}
+ catch{message.focus();message.select();status.textContent='La copie automatique est bloquée ici. Votre message est sélectionné : copiez-le avec le menu de votre téléphone ou Ctrl/Cmd + C, puis ouvrez Instagram.';}
+});
 
 // Projection automatique du menu : un plan toutes les quatre secondes.
 // Son et défilement indépendants : seuls leurs boutons changent leur état.
