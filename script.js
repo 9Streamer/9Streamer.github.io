@@ -210,27 +210,40 @@ chapterMenu.addEventListener('wheel',e=>{
 let audioContext=null,soundEnabled=true,audioReady=false;
 // Le son commence activé à chaque nouvelle visite ; le bouton le coupe pour cette session.
 const soundButton=document.querySelector('.sound-toggle');
-function syncSoundButton(){soundButton.textContent='SON : '+(soundEnabled?'ON':'OFF');soundButton.setAttribute('aria-pressed',String(soundEnabled));soundButton.setAttribute('aria-label',soundEnabled?'Couper les sons':'Activer les sons');}
-syncSoundButton();
-// Tentative audio dès l’ouverture ; reprise au premier geste si le navigateur suspend le contexte.
-function unlockSound(e){
- if(!e.isTrusted||(audioReady&&audioContext?.state==='running'))return;
- audioReady=true;
- if(soundEnabled&&audioContext?.state==='suspended')audioContext.resume().catch(()=>{});
- // Le premier geste démarre le paysage sonore, sauf si le visiteur coupe le son.
- if(soundEnabled&&!soundButton.contains(e.target))playCue('step');
+function syncSoundButton(){
+ const running=soundEnabled&&audioContext?.state==='running';
+ soundButton.textContent=!soundEnabled?'SON : OFF':running?'SON : ON':'SON : ACTIVER';
+ soundButton.setAttribute('aria-pressed',String(!!running));
+ soundButton.setAttribute('aria-label',running?'Couper les sons':'Activer les sons');
 }
-document.addEventListener('pointerdown',unlockSound,{capture:true});
+syncSoundButton();
+// Le clic / relâchement tactile est une activation reconnue ; la molette ne l’est pas.
+function unlockSound(e){
+ if(!e.isTrusted||!soundEnabled||soundButton.contains(e.target)||audioContext?.state==='running')return;
+ audioReady=true;
+ playCue('open');
+}
+document.addEventListener('pointerup',unlockSound,{capture:true});
+document.addEventListener('click',unlockSound,{capture:true});
 document.addEventListener('keydown',unlockSound,{capture:true});
-document.addEventListener('wheel',unlockSound,{capture:true,passive:true});
 // Bruitages mécaniques synthétisés : miroir, rideaux et entraînement de film.
-let lastCue=0;
-function playCue(kind='click'){
+let lastCue=-Infinity;
+async function playCue(kind='click'){
  if(!soundEnabled||document.hidden)return;
- const now=performance.now();if(now-lastCue<65)return;lastCue=now;
  try{
- audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
- if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+ if(!audioContext){
+  audioContext=new (window.AudioContext||window.webkitAudioContext)();
+  audioContext.addEventListener('statechange',syncSoundButton);
+ }
+ // Ne jamais empiler les bruitages du carrousel pendant le blocage automatique.
+ if(audioContext.state!=='running'){
+  syncSoundButton();
+  if(kind!=='open')return;
+  await audioContext.resume();
+ }
+ if(!soundEnabled||document.hidden||audioContext.state!=='running')return;
+ syncSoundButton();
+ const now=performance.now();if(now-lastCue<65)return;lastCue=now;
  const t=audioContext.currentTime;
  function mechanism(delay,duration,frequency,volume){
  const n=Math.ceil(audioContext.sampleRate*duration),buffer=audioContext.createBuffer(1,n,audioContext.sampleRate),data=buffer.getChannelData(0);
@@ -248,9 +261,13 @@ function playCue(kind='click'){
  // Trois crans doux d’une molette d’avancement de pellicule.
  [0,.026,.053].forEach((d,i)=>mechanism(d,.023,1700+i*250,.10-i*.02));
  }else{mechanism(0,.025,1400,.12);mechanism(.028,.02,700,.06);}
- }catch{soundEnabled=false;soundButton.textContent='SON : OFF';soundButton.setAttribute('aria-pressed','false');soundButton.setAttribute('aria-label','Activer les sons');}
+ }catch{syncSoundButton();}
 }
-soundButton.addEventListener('click',()=>{soundEnabled=!soundEnabled;soundButton.textContent='SON : '+(soundEnabled?'ON':'OFF');soundButton.setAttribute('aria-pressed',String(soundEnabled));soundButton.setAttribute('aria-label',soundEnabled?'Couper les sons':'Activer les sons');playCue('open');});
+soundButton.addEventListener('click',()=>{
+ // Un premier clic sur un son bloqué l’active, au lieu de le désactiver.
+ if(soundEnabled&&audioContext?.state==='running'){soundEnabled=false;syncSoundButton();return;}
+ soundEnabled=true;audioReady=true;syncSoundButton();playCue('open');
+});
 document.addEventListener('click',e=>{const control=e.target.closest('button,a,summary');if(!control||control===soundButton||control.matches('[data-scene],.previous-scene,.following-scene'))return;playCue(control.matches('.menu-toggle,.project-open,.scene-enter')?'open':'click');});
 // Le bouton reste accessible dans le dialogue modal.
 const experienceControls=$('.experience-controls');
