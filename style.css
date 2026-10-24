@@ -258,3 +258,12 @@ html,body{overscroll-behavior-x:none;touch-action:pan-y pinch-zoom}
 
 /* Le raccourci flottant de chapitre est réservé aux petits écrans. */
 @media(min-width:721px){.next-scene{display:none}}
+
+/* Chapitres centrés sous le plan ; commandes secondaires sans doublon. */
+@media(min-width:721px){
+ .navigator-controls{display:grid;grid-template-columns:1fr auto 1fr;grid-template-areas:"hint strip position" ". auto .";align-items:center;column-gap:24px;row-gap:16px}
+ .navigator-instruction{grid-area:hint}
+ .scene-filmstrip{grid-area:strip;justify-content:center}
+ .scene-position{grid-area:position;text-align:right}
+ .auto-scenes{grid-area:auto;grid-column:auto;justify-self:center}
+}
