@@ -251,3 +251,7 @@ footer{margin-bottom:0}
 /* Hors du navigateur de chapitres, seul le défilement vertical est proposé. */
 html,body{overscroll-behavior-x:none;touch-action:pan-y pinch-zoom}
 #chapter-menu .scene-window{touch-action:pan-y pinch-zoom}
+
+/* Flèches dessinées : trait net, couleur de la DA, aucun glyphe emoji. */
+.da-arrow{display:inline-block;width:1em;height:1em;min-width:1em;flex-shrink:0;vertical-align:-.12em;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter;pointer-events:none}
+.next-arrow .da-arrow{width:20px;height:20px}.contact-arrow .da-arrow{display:block}
