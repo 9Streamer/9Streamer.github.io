@@ -297,3 +297,22 @@ document.addEventListener('visibilitychange',scheduleAutoScenes);
 reduceMotion.addEventListener('change',()=>{if(reduceMotion.matches)pauseAutoScenes();});
 motionButton.addEventListener('click',()=>{if(!motion)pauseAutoScenes();});
 scheduleAutoScenes();
+
+// Le texte reste éditable ; aucune redirection ou copie sans clic explicite.
+const briefCopy=document.querySelector('.brief-copy');
+briefCopy?.addEventListener('click',async()=>{
+ const field=document.querySelector('#project-message');
+ const status=document.querySelector('.brief-status');
+ try{
+  await navigator.clipboard.writeText(field.value);
+  status.textContent='Message copié. Ouvrez Instagram, touchez « Message », puis collez votre texte.';
+  briefCopy.textContent='MESSAGE COPIÉ ✓';
+ }catch{
+  field.focus();field.select();
+  status.textContent='Sélectionnez puis copiez le texte ci-dessus, et collez-le dans votre message Instagram.';
+ }
+});
+document.querySelector('#project-message')?.addEventListener('input',()=>{
+ briefCopy.textContent='COPIER MON MESSAGE';
+ document.querySelector('.brief-status').textContent='Copiez votre texte, puis collez-le dans un message sur Instagram.';
+});
