@@ -247,3 +247,7 @@ dialog{padding:0;width:min(1200px,calc(100% - 36px));max-height:90svh;border:1px
 html,body{overscroll-behavior-y:none}
 @supports(overflow:clip){html,body{overflow-x:clip}}
 footer{margin-bottom:0}
+
+/* Hors du navigateur de chapitres, seul le défilement vertical est proposé. */
+html,body{overscroll-behavior-x:none;touch-action:pan-y pinch-zoom}
+#chapter-menu .scene-window{touch-action:pan-y pinch-zoom}

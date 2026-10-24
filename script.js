@@ -39,7 +39,7 @@ const sceneWindow=$('.scene-window');
 function resetSceneDrag(){cancelAnimationFrame(dragFrame);sceneWindow.classList.remove('is-dragging');sceneWindow.style.removeProperty('--drag-x');sceneWindow.style.removeProperty('--drag-tilt');}
 function cancelSceneDrag(){if(swipeStart)suppressSceneClick=true;swipeStart=null;resetSceneDrag();}
 sceneWindow.addEventListener('touchstart',e=>{
- if(e.touches.length!==1||sceneAnimating){cancelSceneDrag();return;}
+ if(!chapterMenu.open||e.touches.length!==1||sceneAnimating){cancelSceneDrag();return;}
  const t=e.touches[0];suppressSceneClick=false;swipeStart={id:t.identifier,x:t.clientX,y:t.clientY,start:performance.now(),axis:null};
 },{passive:true});
 sceneWindow.addEventListener('touchmove',e=>{
