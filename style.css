@@ -281,3 +281,5 @@ html,body{overscroll-behavior-x:none;touch-action:pan-y pinch-zoom}
  .auto-scenes{min-height:36px;padding:8px 14px}
 }
 .chapter-step-controls{display:none}
+
+@media(min-width:721px){#chapter-menu.cinema-navigator[open]{grid-template-columns:minmax(0,1fr);justify-content:stretch;align-items:stretch}}
