@@ -283,3 +283,6 @@ html,body{overscroll-behavior-x:none;touch-action:pan-y pinch-zoom}
 .chapter-step-controls{display:none}
 
 @media(min-width:721px){#chapter-menu.cinema-navigator[open]{grid-template-columns:minmax(0,1fr);justify-content:stretch;align-items:stretch}}
+
+/* Sur écran tactile, le lien ICI affiche directement son accent orange. */
+@media(hover:none),(pointer:coarse){.contact-head h2 span{color:var(--accent);-webkit-text-fill-color:var(--accent);-webkit-text-stroke:0}}
