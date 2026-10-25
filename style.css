@@ -286,3 +286,15 @@ html,body{overscroll-behavior-x:none;touch-action:pan-y pinch-zoom}
 
 /* Sur écran tactile, le lien ICI affiche directement son accent orange. */
 @media(hover:none),(pointer:coarse){.contact-head h2 span{color:var(--accent);-webkit-text-fill-color:var(--accent);-webkit-text-stroke:0}}
+
+/* Mobile : ancrage au viewport, en-tête non compressible et scroll depuis le haut. */
+@media(max-width:720px){
+ #chapter-menu.cinema-navigator{position:fixed;inset:0;margin:0;width:100%;max-width:100%;height:100%;height:100dvh;max-height:100%;max-height:100dvh;overflow-y:auto;overflow-x:hidden;scroll-behavior:auto;overflow-anchor:none;padding: max(16px,env(safe-area-inset-top)) 0 max(24px,env(safe-area-inset-bottom));}
+ #chapter-menu.cinema-navigator[open]{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:20px}
+ .navigator-top,.navigator-stage,.navigator-controls{flex-shrink:0}
+ .navigator-top{position:relative;margin:0 18px;padding-bottom:14px}
+ .navigator-stage{min-height:0}
+ .scene-window{height:clamp(340px,55svh,560px);min-height:340px}
+ .navigator-controls{margin:0 18px;display:flex;flex-direction:column;gap:14px}
+ .nav-atmosphere{position:fixed}
+}
